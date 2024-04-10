@@ -1,10 +1,12 @@
 import { useContext, useState } from "react";
 import { UserContext } from "../UserContext";
-import { Link, Navigate, useParams } from "react-router-dom";
+import {  Navigate, useParams } from "react-router-dom";
 import axios from "axios";
+import PlacePage from "./PlacesPage";
+import AccountNav from "../AccountNav";
 
-export default function AccountPage() {
-  const [redirect, setRedirect] = useState(false);
+export default function ProfilePage() {
+  const [redirect, setRedirect] = useState(null);
   const { ready, user, setUser } = useContext(UserContext);
   let { subpage } = useParams();
   if (subpage === undefined) {
@@ -24,13 +26,7 @@ export default function AccountPage() {
     return <Navigate to={"/login"} />;
   }
 
-  function linkClasses(type = null) {
-    let classes = "p-2  px-6";
-    if (type === subpage) {
-      classes += " bg-primary text-white rounded-full";
-    }
-    return classes;
-  }
+  
 
   if (redirect) {
     return <Navigate to={redirect} />;
@@ -38,17 +34,7 @@ export default function AccountPage() {
 
   return (
     <div>
-      <nav className="w-full flex justify-center mt-8 gap-2 mb-8">
-        <Link className={linkClasses("profile")} to={"/account"}>
-          Trang cá nhân
-        </Link>
-        <Link className={linkClasses("bookings")} to={"/account/bookings"}>
-          Đặt phòng
-        </Link>
-        <Link className={linkClasses("places")} to={"/account/places"}>
-          Khách sạn
-        </Link>
-      </nav>
+      <AccountNav/>
       {subpage === "profile" && (
         <div className="text-center max-w-lg mx-auto">
           Đăng nhập với tài khoản {user.name} <br />
@@ -58,6 +44,7 @@ export default function AccountPage() {
           </button>
         </div>
       )}
+      {subpage === "places" && <PlacePage />}
     </div>
   );
 }
