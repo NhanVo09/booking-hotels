@@ -4,7 +4,8 @@ const { default: mongoose } = require("mongoose");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("./models/User.js");
-const Place = require("./models/Place");
+const Place = require("./models/Place.js");
+const Booking = require("./models/Booking.js");
 const cookieParser = require("cookie-parser");
 const imageDownloader = require("image-downloader");
 const multer = require("multer");
@@ -30,6 +31,14 @@ mongoose.connect(process.env.MONGO_URL);
 app.get("/test", (req, res) => {
   res.json("test, ok");
 });
+function getUserDataFromReq(req) {
+  return new Promise((resolve, reject) => {
+    jwt.verify(req.cookies.token, jwtSecret, {}, async (err, userData) => {
+      if (err) throw err;
+      resolve(userData);
+    });
+  });
+}
 
 app.post("/register", async (req, res) => {
   const { name, email, password } = req.body;
@@ -191,8 +200,54 @@ app.put("/places", async (req, res) => {
     }
   });
 });
-app.get('/places', async (req,res) => {
-  res.json( await Place.find() );
+app.get("/places", async (req, res) => {
+  res.json(await Place.find());
 });
 
+app.post("/bookings", async (req, res) => {
+  const userData = await getUserDataFromReq(req);
+  const { place, checkIn, checkOut, numberOfGuests, name, phone, room, price } =
+    req.body;
+  Booking.create({
+    place,
+    checkIn,
+    checkOut,
+    numberOfGuests,
+    name,
+    room,
+    phone,
+    price,
+    user: userData.id,
+  })
+    .then((doc) => {
+      res.json(doc);
+    })
+    .catch((err) => {
+      throw err;
+    });
+});
+
+app.get("/bookings", async (req, res) => {
+  const userData = await getUserDataFromReq(req);
+  res.json(await Booking.find({ user: userData.id }).populate("place"));
+});
+
+app.get("/places", async (req, res) => {
+  const { search } = req.query;
+  try {
+    let query = {};
+    if (search) {
+      query = {
+        $or: [
+          { title: { $regex: search, $options: "i" } },
+          { address: { $regex: search, $options: "i" } }
+        ]
+      };
+    }
+    const places = await Place.find(query);
+    res.status(200).json(places);
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching places", error });
+  }
+});
 app.listen(3000);

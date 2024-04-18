@@ -38,8 +38,8 @@ function Perks({ selected =[], onChange }) {
       <label className="border p-4 flex rounded-2xl gap-2 items-center cursor-pointer mt-2">
         <input
           type="checkbox"
-          checked={selected.includes("parking")}
-          name="parking"
+          checked={selected.includes("Bãi xe miễn phí")}
+          name="Bãi xe miễn phí"
           onChange={handleCbClick}
         />
         <svg
@@ -62,8 +62,8 @@ function Perks({ selected =[], onChange }) {
       <label className="border p-4 flex rounded-2xl gap-2 items-center cursor-pointer mt-2">
         <input
           type="checkbox"
-          checked={selected.includes("tech")}
-          name="tech"
+          checked={selected.includes("Đầy đủ trang thiết bị")}
+          name="Đầy đủ trang thiết bị"
           onChange={handleCbClick}
         />
         <svg
@@ -86,8 +86,8 @@ function Perks({ selected =[], onChange }) {
       <label className="border p-4 flex rounded-2xl gap-2 items-center cursor-pointer mt-2">
         <input
           type="checkbox"
-          checked={selected.includes("shower")}
-          name="shower"
+          checked={selected.includes("Bồn tắm nóng/lạnh")}
+          name="Bồn tắm nóng/lạnh"
           onChange={handleCbClick}
         />
         <svg
@@ -111,8 +111,8 @@ function Perks({ selected =[], onChange }) {
   );
 }
 Perks.propTypes = {
-  selected: PropTypes.array.isRequired, // Kiểm tra 'selected' là một mảng
-  onChange: PropTypes.func.isRequired, // Kiểm tra 'onChange' là một hàm
+  selected: PropTypes.array.isRequired, 
+  onChange: PropTypes.func.isRequired, 
 };
 
 export default Perks;
