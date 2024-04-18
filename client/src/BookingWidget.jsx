@@ -15,15 +15,6 @@ export default function BookingWidget({ place }) {
   const [redirect, setRedirect] = useState("");
   const { user } = useContext(UserContext);
 
-    // function handleCbClick(ev) {
-    //   const { checked, name } = ev.target;
-    //   const { selected =[], onChange } = ev.target;
-    //   if (checked) {
-    //     onChange([...selected, name]);
-    //   } else {
-    //     onChange([...selected.filter((selectedName) => selectedName !== name)]);
-    //   }
-    // }
   useEffect(() => {
     if (user) {
       setName(user.name);

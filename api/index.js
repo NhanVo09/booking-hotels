@@ -6,6 +6,7 @@ const jwt = require("jsonwebtoken");
 const User = require("./models/User.js");
 const Place = require("./models/Place.js");
 const Booking = require("./models/Booking.js");
+const Comment = require("./models/Comment");
 const cookieParser = require("cookie-parser");
 const imageDownloader = require("image-downloader");
 const multer = require("multer");
@@ -250,4 +251,37 @@ app.get("/places", async (req, res) => {
     res.status(500).json({ message: "Error fetching places", error });
   }
 });
+
+app.get('/comments/:place', async (req, res) => {
+  const comments = await Comment.find({ place: req.params.place }).populate('user', 'name');
+  res.json(comments);
+});
+
+// Endpoint để đăng bình luận
+app.post('/comments', async (req, res) => {
+  const { token } = req.cookies;
+  const { content, place } = req.body;
+
+  if (!token) {
+    return res.status(401).send("Access denied. No token provided.");
+  }
+
+  jwt.verify(token, jwtSecret, async (err, userData) => {
+    if (err) {
+      return res.status(401).send("Invalid token.");
+    }
+    
+    try {
+      const newComment = await Comment.create({
+        content,
+        place: place,
+        user: userData.id
+      });
+      res.status(201).json(newComment);
+    } catch (error) {
+      res.status(400).json({ message: "Error posting comment", error });
+    }
+  });
+});
+
 app.listen(3000);

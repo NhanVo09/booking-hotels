@@ -4,9 +4,10 @@ import { useParams } from "react-router-dom";
 import AddressLink from "../AddressLink";
 import PlaceGallery from "../PlaceGallery";
 import BookingWidget from "../BookingWidget";
+import Comments from "../Comment";
 
 
-export default function PlacePage (){
+export default function PlacePage ( ){
     const {id} = useParams();
     const [place, setPlace]= useState(null);
     useEffect(()=>{
@@ -34,8 +35,8 @@ export default function PlacePage (){
           Giờ check-in: {place.checkIn}:00<br />
           Giờ check-out: {place.checkOut}:00<br />
           Số lượng khách tối đa / 1 phòng: {place.maxGuests}
-          <h3 className="mt-2">TIỆN NGHI CỦA KHÁCH SẠN:</h3>
-          <ul className=" mt-1 font-bold">
+          <h2 className="font-semibold text-2xl mt-8">TIỆN NGHI CỦA KHÁCH SẠN:</h2>
+          <ul className=" mt-1 ">
             {place.perks.map((perk, index) => (
               <li key={index}>{perk}</li>
             ))}
@@ -52,6 +53,8 @@ export default function PlacePage (){
         </div>
         <div className="mb-4 mt-2 text-sm text-gray-700 leading-5">{place.extraInfo}</div>
       </div>
+      <Comments place={place._id} />
     </div>
     );
 }
+
