@@ -47,10 +47,20 @@ export default function PlacesPage() {
                 {places.photo.length > 0 && (
                   <img className="object-cover" src={ 'http://localhost:3000/uploads/' + places.photo[0]} />
                 )}
+                
+                
               </div>
+              
               <div className="grow-0 shrink">
                 <h2 className="text-xl ">{places.title}</h2>
                 <p className="text-sm mt-2">{places.description}</p>
+                <div className=" text-right">
+                  {places.approved ? (
+                    <span className="text-green-500 font-semibold">Đã duyệt</span>
+                  ) : (
+                    <span className="text-red-500 font-semibold">Chưa duyệt</span>
+                  )}
+                </div>
               </div>
             </Link>
           ))}

@@ -1,9 +1,10 @@
 import { useContext, useState } from "react";
 import { UserContext } from "../UserContext";
-import {  Navigate, useParams } from "react-router-dom";
+import { Navigate, useParams } from "react-router-dom";
 import axios from "axios";
 import PlacePage from "./PlacesPage";
 import AccountNav from "../AccountNav";
+import ManageBookingsPage from "./ManageBookingsPage";
 
 export default function ProfilePage() {
   const [redirect, setRedirect] = useState(null);
@@ -26,8 +27,6 @@ export default function ProfilePage() {
     return <Navigate to={"/login"} />;
   }
 
-  
-
   if (redirect) {
     return <Navigate to={redirect} />;
   }
@@ -45,6 +44,7 @@ export default function ProfilePage() {
         </div>
       )}
       {subpage === "places" && <PlacePage />}
+      {user.approved && <ManageBookingsPage />}
     </div>
   );
 }

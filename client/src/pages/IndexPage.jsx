@@ -5,10 +5,14 @@ import { Link } from "react-router-dom";
 export default function IndexPage() {
   const [places, setPlaces] = useState([]);
   useEffect(() => {
-    axios.get("/places").then( response  => {
-      setPlaces(response.data);
-    });
+    fetchData();
   }, []);
+
+  const fetchData = async () => {
+    const placesRes = await axios.get("/places");
+    const approvedPlaces = placesRes.data.filter(place => place.approved);
+    setPlaces(approvedPlaces);
+  };
   return (
     <div>
     <div className="mt-8 grid gap-x-6 gap-y-8 grid-cols-2 md:grid-cols-3 lg:grid-cols-4 ">
@@ -24,8 +28,8 @@ export default function IndexPage() {
               />
               )}
             </div>
-           <h2 className="font-bold"> {place.address}</h2>
-           <h3 className="text-sm truncate"> {place.title}</h3>
+           <h2 className="font-bold"> {place.title} </h2>
+           <h3 className="text-sm truncate"> {place.address}</h3>
            <div className="mt-1">
             <span className="font-bold">{place.price}.000VND/đêm</span>
            </div>

@@ -42,13 +42,16 @@ function getUserDataFromReq(req) {
 }
 
 app.post("/register", async (req, res) => {
-  const { name, email, password } = req.body;
+  const { name, email, password, position, approved, request } = req.body;
 
   try {
     const userDoc = await User.create({
       name,
       email,
       password: bcrypt.hashSync(password, bcryptSalt),
+      position,
+      approved: false,
+      request: null,
     });
     res.json(userDoc);
   } catch (e) {
@@ -84,9 +87,9 @@ app.get("/profile", (req, res) => {
   if (token) {
     jwt.verify(token, jwtSecret, {}, async (err, userData) => {
       if (err) throw err;
-      const { name, email, _id } = await User.findById(userData.id);
+      const { name, email, _id, approved } = await User.findById(userData.id);
 
-      res.json({ name, email, _id });
+      res.json({ name, email, _id, approved });
     });
   } else {
     res.json(null);
@@ -134,6 +137,7 @@ app.post("/places", (req, res) => {
     checkOut,
     maxGuests,
     price,
+    approved,
   } = req.body;
   jwt.verify(token, jwtSecret, {}, async (err, userData) => {
     if (err) throw err;
@@ -149,6 +153,7 @@ app.post("/places", (req, res) => {
       checkOut,
       maxGuests,
       price,
+      approved: false,
     });
     res.json(placeDoc);
   });
@@ -179,6 +184,7 @@ app.put("/places", async (req, res) => {
     checkOut,
     maxGuests,
     price,
+    approved,
   } = req.body;
   jwt.verify(token, jwtSecret, {}, async (err, userData) => {
     if (err) throw err;
@@ -195,6 +201,7 @@ app.put("/places", async (req, res) => {
         checkOut,
         maxGuests,
         price,
+        approved: false,
       });
       await placeDoc.save();
       res.json("ok");
@@ -203,6 +210,42 @@ app.put("/places", async (req, res) => {
 });
 app.get("/places", async (req, res) => {
   res.json(await Place.find());
+});
+
+app.patch("/places/:id", async (req, res) => {
+  const { token } = req.cookies;
+  const { approved, request } = req.body;
+
+  jwt.verify(token, jwtSecret, {}, async (err, userData) => {
+    if (err) {
+      res.status(401).send("Invalid token.");
+    } else {
+      try {
+        await Place.findByIdAndUpdate(req.params.id, { approved, request });
+        res.json({ message: "Place status updated successfully." });
+      } catch (error) {
+        res
+          .status(500)
+          .json({ message: "Error updating place status.", error });
+      }
+    }
+  });
+});
+
+app.delete("/places/:id", async (req, res) => {
+  const { token } = req.cookies;
+  jwt.verify(token, jwtSecret, {}, async (err, userData) => {
+    if (err) {
+      res.status(401).send("Invalid token.");
+    } else {
+      try {
+        await Place.findByIdAndDelete(req.params.id);
+        res.status(204).send();
+      } catch (error) {
+        res.status(500).json({ message: "Error deleting place.", error });
+      }
+    }
+  });
 });
 
 app.post("/bookings", async (req, res) => {
@@ -218,6 +261,8 @@ app.post("/bookings", async (req, res) => {
     room,
     phone,
     price,
+    pay:null,
+    cancel:null,
     user: userData.id,
   })
     .then((doc) => {
@@ -232,6 +277,66 @@ app.get("/bookings", async (req, res) => {
   const userData = await getUserDataFromReq(req);
   res.json(await Booking.find({ user: userData.id }).populate("place"));
 });
+app.patch("/bookings/:id", async (req, res) => {
+  const { token } = req.cookies;
+  const { pay, cancel } = req.body;
+
+  jwt.verify(token, jwtSecret, {}, async (err, userData) => {
+    if (err) {
+      res.status(401).send("Invalid token.");
+    } else {
+      try {
+        await Booking.findByIdAndUpdate(req.params.id, { pay, cancel });
+      } catch (error) {
+        res
+          .status(500)
+          .json({ message: "Error updating place status.", error });
+      }
+    }
+  });
+});
+app.get("/bookings/:id", async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const booking = await Booking.findById(id).populate("place");
+
+    if (!booking) {
+      return res.status(404).json({ message: "Booking not found" });
+    }
+
+    res.json(booking);
+  } catch (error) {
+    console.error("Error fetching booking:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+app.get("/owners-places-bookings", async (req, res) => {
+  try {
+    const bookings = await Booking.find().populate("place").populate("user");
+
+    const ownersPlacesBookings = [];
+
+    for (const booking of bookings) {
+      const owner = await User.findById(booking.place.owner);
+
+      ownersPlacesBookings.push({
+        owner: {
+          id: owner._id,
+          name: owner.name,
+          email: owner.email,
+        },
+        place: booking.place,
+        booking,
+      });
+    }
+
+    res.json(ownersPlacesBookings);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
 
 app.get("/places", async (req, res) => {
   const { search } = req.query;
@@ -241,8 +346,8 @@ app.get("/places", async (req, res) => {
       query = {
         $or: [
           { title: { $regex: search, $options: "i" } },
-          { address: { $regex: search, $options: "i" } }
-        ]
+          { address: { $regex: search, $options: "i" } },
+        ],
       };
     }
     const places = await Place.find(query);
@@ -252,13 +357,16 @@ app.get("/places", async (req, res) => {
   }
 });
 
-app.get('/comments/:place', async (req, res) => {
-  const comments = await Comment.find({ place: req.params.place }).populate('user', 'name');
+app.get("/comments/:place", async (req, res) => {
+  const comments = await Comment.find({ place: req.params.place }).populate(
+    "user",
+    "name"
+  );
   res.json(comments);
 });
 
 // Endpoint để đăng bình luận
-app.post('/comments', async (req, res) => {
+app.post("/comments", async (req, res) => {
   const { token } = req.cookies;
   const { content, place } = req.body;
 
@@ -270,12 +378,12 @@ app.post('/comments', async (req, res) => {
     if (err) {
       return res.status(401).send("Invalid token.");
     }
-    
+
     try {
       const newComment = await Comment.create({
         content,
         place: place,
-        user: userData.id
+        user: userData.id,
       });
       res.status(201).json(newComment);
     } catch (error) {
@@ -283,5 +391,52 @@ app.post('/comments', async (req, res) => {
     }
   });
 });
+app.get("/comments", async (req, res) => {
+  const comments = await Comment.find().populate("user", "name");
+  res.json(comments);
+});
+app.delete("/comments/:id", async (req, res) => {
+  try {
+    await Comment.findByIdAndDelete(req.params.id);
+    res.status(204).send();
+  } catch (error) {
+    res.status(500).json({ message: "Error deleting comment.", error });
+  }
+});
+//ADMIN
+app.get("/users", async (req, res) => {
+  try {
+    const users = await User.find();
+    res.json(users);
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching users", error });
+  }
+});
+app.patch("/users/:id", async (req, res) => {
+  const { token } = req.cookies;
+  const { approved, request } = req.body;
+
+  jwt.verify(token, jwtSecret, {}, async (err, userData) => {
+    if (err) {
+      res.status(401).send("Invalid token.");
+    } else {
+      try {
+        await User.findByIdAndUpdate(req.params.id, { approved, request });
+        res.json({ message: "User status updated successfully." });
+      } catch (error) {
+        res.status(500).json({ message: "Error updating User status.", error });
+      }
+    }
+  });
+});
+app.delete("/users/:id", async (req, res) => {
+  try {
+    await User.findByIdAndDelete(req.params.id);
+    res.status(204).send();
+  } catch (error) {
+    res.status(500).json({ message: "Error deleting user", error });
+  }
+});
+
 
 app.listen(3000);

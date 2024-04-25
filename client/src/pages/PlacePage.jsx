@@ -49,7 +49,7 @@ export default function PlacePage ( ){
       </div>
       <div className="bg-white -mx-8 px-8 py-8 border-t">
         <div>
-          <h2 className="font-semibold text-2xl">Extra info</h2>
+          <h2 className="font-semibold text-2xl">Thông tin thêm</h2>
         </div>
         <div className="mb-4 mt-2 text-sm text-gray-700 leading-5">{place.extraInfo}</div>
       </div>

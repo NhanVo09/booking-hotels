@@ -6,6 +6,7 @@ export default function RegisterPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [position, setPosition] = useState("")
   async function registerUser(ev) {
     ev.preventDefault();
     try {
@@ -13,6 +14,7 @@ export default function RegisterPage() {
         name,
         email,
         password,
+        position,
       });
 
       alert("Đăng ký thành công");
@@ -43,6 +45,22 @@ export default function RegisterPage() {
             value={password}
             onChange={(ev) => setPassword(ev.target.value)}
           />
+          <input
+          className="m-3"
+              type="checkbox"
+              value={position}
+              name = "Người dùng"
+              onChange={(ev) => setPosition(ev.target.name)}
+            />
+            <label>Người dùng:</label>
+          <input
+          className="m-3"
+              type="checkbox"
+              value={position}
+              name = "Chủ khách sạn"
+              onChange={(ev) => setPosition(ev.target.name)}
+            />
+            <label>Chủ khách sạn:</label>
           <button className="primary">Đăng ký</button>
           <div className="text-center py-2 text-gray-500">
             Đã có tài khoản{" "}

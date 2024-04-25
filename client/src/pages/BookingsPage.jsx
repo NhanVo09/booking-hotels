@@ -12,6 +12,26 @@ export default function BookingsPage() {
       setBookings(response.data);
     });
   }, []);
+  const CancelBooking = async (id) => {
+    await axios.patch(`/bookings/${id}`, { cancel: false });
+  };
+  const renderFunctionCancel = (booking) => {
+    if (booking.cancel === true) {
+      return <span className="text-red-500 font-bold mr-3">Đã hủy</span>;
+    } else if (booking.cancel == false || booking.cancel == null ) {
+      return (
+        <button
+          onClick={() => CancelBooking(booking._id)}
+          className=" p-2 max-w-full gap-4 mt-5 mb-10 bg-white text-red-500 rounded-2xl font-bold"
+        >
+          {" "}
+          Hủy đặt phòng{" "}
+        </button>
+        
+      );
+    }
+  };
+  
   return (
     <div>
       <AccountNav />
@@ -30,7 +50,10 @@ export default function BookingsPage() {
                 <h2 className="text-xl font-bold">{booking.place.title}</h2>
                 <p className="text-xl">{booking.room}</p>
                 <div className="text-xl">
-                  <BookingDates booking={booking} className="mb-2 mt-4 text-gray-500" />
+                  <BookingDates
+                    booking={booking}
+                    className="mb-2 mt-4 text-gray-500"
+                  />
                   <div className="flex gap-1">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -51,6 +74,9 @@ export default function BookingsPage() {
                     </span>
                   </div>
                 </div>
+              </div>
+              <div className="mt-3" >
+                {renderFunctionCancel(booking)}
               </div>
             </Link>
           ))}

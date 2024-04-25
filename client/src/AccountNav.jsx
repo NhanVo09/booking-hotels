@@ -1,7 +1,23 @@
+import axios from "axios";
+import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 
 export default function AccountNav(){
+  const [user, setUser] = useState({});
     const {pathname} = useLocation();
+    useEffect(() => {
+      fetchData();
+    }, []);
+    const {approved} = user
+    const fetchData = async () => {
+      try {
+        const response = await axios.get("/profile");
+        setUser(response.data);
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+      }
+    };
+    
     let subpage = pathname.split('/')?.[2];
     if (subpage === undefined) {
       subpage = 'profile';
@@ -49,6 +65,7 @@ export default function AccountNav(){
           </svg>
           Đặt phòng
         </Link>
+        {approved ? (
         <Link className={linkClasses("places")} to={"/account/places"}>
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -65,7 +82,24 @@ export default function AccountNav(){
             />
           </svg>
           Khách sạn
-        </Link>
+        </Link>): (
+        <Link className={linkClasses("places")} to={"/account/registerplaces"}>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth={1.5}
+            stroke="currentColor"
+            className="w-6 h-6"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21"
+            />
+          </svg>
+        Đăng ký chủ khách sạn
+        </Link>) }
       </nav>
     );
 }

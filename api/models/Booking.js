@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 
 const bookingSchema = new mongoose.Schema({
+  owner: {type: mongoose.Schema.Types.ObjectId, ref:'User'},
   place: {type:mongoose.Schema.Types.ObjectId, required:true, ref:'Place'},
   user: {type:mongoose.Schema.Types.ObjectId, required:true},
   checkIn: {type:Date, required:true},
@@ -9,6 +10,8 @@ const bookingSchema = new mongoose.Schema({
   phone: {type:String, required:true},
   room: {type:String},
   price: Number,
+  pay:Boolean,
+  cancel: Boolean,
 });
 
 const BookingModel = mongoose.model('Booking', bookingSchema);
